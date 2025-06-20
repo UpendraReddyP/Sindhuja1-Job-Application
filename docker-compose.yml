@@ -1,0 +1,52 @@
+version: '3.8'
+
+services:
+  postgres:
+    image: postgres:13
+    container_name: postgres-job-application
+    ports:
+      - "5032:5432"
+    environment:
+      POSTGRES_DB: job_application_db
+      POSTGRES_USER: postgres
+      POSTGRES_PASSWORD: admin123
+    volumes:
+      - pg_job_application_data:/var/lib/postgresql/data
+      - ./init.sql:/docker-entrypoint-initdb.d/init.sql
+
+  backend:
+    build: ./Backend
+    container_name: backend-job-application
+    ports:
+      - "3032:3032"
+    volumes:
+      - ./uploads:/app/uploads
+    environment:
+      NODE_ENV: development
+      DB_USER: postgres
+      DB_HOST: postgres
+      DB_NAME: job_application_db
+      DB_PASSWORD: admin123
+      DB_PORT: 5432
+    depends_on:
+      - postgres
+
+  employee-job:
+    build: ./Employee-job
+    container_name: employee-job
+    ports:
+      - "8043:80"
+    depends_on:
+      - backend
+
+  hr-job:
+    build: ./HR-job
+    container_name: hr-job
+    ports:
+      - "8044:80"
+    depends_on:
+      - backend
+
+volumes:
+  pg_job_application_data:
+
